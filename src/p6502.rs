@@ -1,17 +1,7 @@
-pub struct Instruction {
-    pub op_code: OpCode,
-    pub short_value: Option<u8>,
-    pub long_value: Option<u16>,
-    pub bytes: u8,
-    pub cycles: u8,
-}
+use super::instruction::{Instruction, OpCode};
 
 pub struct Memory {
     pub memory: [u8; 0xFFF],
-}
-
-pub enum OpCode {
-    AndImmediate = 0x29,
 }
 
 pub struct P6502 {
