@@ -1,6 +1,6 @@
 use super::instruction::Instruction;
 use core::panic;
-use std::fmt;
+use std::{fmt, usize};
 
 pub struct InesContent {
     pub headers: InesHeaders,
@@ -54,19 +54,20 @@ impl fmt::Display for InesHeaders {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "PRG ROM size(16 KB): {}\nCHR ROM size(8KB): {}",
+            "PRG ROM size(16 KB): {}\nCHR ROM size(8KB): {}\nTrainer area: {}",
             self.get_prg_rom_size_in_16_kb(),
-            self.get_chr_rom_size_in_8_kb()
+            self.get_chr_rom_size_in_8_kb(),
+            self.trainer_area_present()
         )
     }
 }
 
-pub fn parse(filepath: &str) -> Result<InesContent, &'static str> {
+pub fn parse(filepath: &str) -> InesContent {
     let data = std::fs::read(filepath).unwrap();
     parse_file_content(data)
 }
 
-pub fn parse_file_content(file_content: Vec<u8>) -> Result<InesContent, &'static str> {
+pub fn parse_file_content(file_content: Vec<u8>) -> InesContent {
     let mut nes_string = Vec::new();
     for i in file_content[0..=3].iter() {
         nes_string.push(*i);
@@ -90,7 +91,25 @@ pub fn parse_file_content(file_content: Vec<u8>) -> Result<InesContent, &'static
 
     println!("NES headers:\n{}", ines_headers);
 
-    Err("Not implemented")
+    if ines_headers.trainer_area_present() {
+        panic!("Trainer are in iNES file not supported.")
+    }
+
+    let mut prg_rom: Vec<u8> = Vec::new();
+    for i in 16..=ines_headers.get_prg_rom_size_in_16_kb() * 16 {
+        prg_rom.push(file_content[i as usize]);
+    }
+
+    let instructions = parse_instructions(prg_rom);
+
+    InesContent {
+        headers: ines_headers,
+        instructions,
+    }
+}
+
+pub fn parse_instructions(prg_rom: Vec<u8>) -> Vec<Instruction> {
+    panic!("Instruction parsing not supported");
 }
 
 #[cfg(test)]

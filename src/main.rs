@@ -18,7 +18,7 @@ fn main() {
         return;
     }
 
-    let ines_content = ines_parser::parse(&args[1]).unwrap();
+    let ines_content = ines_parser::parse(&args[1]);
 
     let mut memory = Memory { memory: [0; 0xFFF] };
     let mut p6502 = P6502::new();
