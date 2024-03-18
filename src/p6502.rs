@@ -1,8 +1,5 @@
 use super::instruction::{Instruction, OpCode};
-
-pub struct Memory {
-    pub memory: [u8; 0xFFF],
-}
+use super::memory::Memory;
 
 pub struct P6502 {
     pub program_counter: u16,
@@ -43,6 +40,7 @@ impl P6502 {
                     self.set_negative_flag();
                 }
             }
+            _ => panic!("Unsupported Opcode "),
         }
     }
 

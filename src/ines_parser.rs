@@ -1,10 +1,10 @@
-use super::instruction::Instruction;
 use core::panic;
 use std::{fmt, usize};
 
 pub struct InesContent {
     pub headers: InesHeaders,
-    pub instructions: Vec<Instruction>,
+    pub prg_rom: Vec<u8>,
+    pub chr_rom: Vec<u8>,
 }
 
 pub struct InesHeaders {
@@ -48,16 +48,25 @@ impl InesHeaders {
     pub fn trainer_area_present(&self) -> bool {
         self.flags6 & 0b00000100 > 1
     }
+
+    pub fn ines_mapper(&self) -> u8 {
+        let mapper_number = self.flags6 >> 6 | self.flags7 & 0b11110000;
+        if mapper_number != 0 {
+            panic!("Mapper number {} not supported!", mapper_number);
+        }
+        mapper_number
+    }
 }
 
 impl fmt::Display for InesHeaders {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "PRG ROM size(16 KB): {}\nCHR ROM size(8KB): {}\nTrainer area: {}",
+            "PRG ROM size(16 KB): {}\nCHR ROM size(8KB): {}\nTrainer area: {}\nMapper number: {}",
             self.get_prg_rom_size_in_16_kb(),
             self.get_chr_rom_size_in_8_kb(),
-            self.trainer_area_present()
+            self.trainer_area_present(),
+            self.ines_mapper()
         )
     }
 }
@@ -100,16 +109,11 @@ pub fn parse_file_content(file_content: Vec<u8>) -> InesContent {
         prg_rom.push(file_content[i as usize]);
     }
 
-    let instructions = parse_instructions(prg_rom);
-
     InesContent {
         headers: ines_headers,
-        instructions,
+        prg_rom,
+        chr_rom: Vec::new(),
     }
-}
-
-pub fn parse_instructions(prg_rom: Vec<u8>) -> Vec<Instruction> {
-    panic!("Instruction parsing not supported");
 }
 
 #[cfg(test)]
