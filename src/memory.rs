@@ -3,6 +3,18 @@ pub struct Memory {
 }
 
 impl Memory {
+    fn new(prg_rom: Vec<u8>) -> Memory {
+        let mut memory = Memory {
+            memory: [0; 0xFFFF],
+        };
+        memory.memory[0x8000..(0x8000 + prg_rom.len())].copy_from_slice(&prg_rom[..]);
+
+        if prg_rom.len() < 32 * 1024 {
+            memory.memory[0xC000..(0xC000 + prg_rom.len())].copy_from_slice(&prg_rom[..]);
+        }
+        memory
+    }
+
     fn read_byte(&self, address: usize) -> u8 {
         self.memory[address]
     }
