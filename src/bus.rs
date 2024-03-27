@@ -38,13 +38,25 @@ impl Bus {
                 let actual_address = address % 0x0800;
                 self.ram[actual_address] = value;
             }
-
             _ => panic!("Unsupported write address {}", address),
         }
     }
 
     pub fn read(&self, address: usize) -> u8 {
-        0
+        match address {
+            0..=0x1FFF => {
+                let ram_address = address % 0x0800;
+                self.ram[ram_address]
+            }
+            0x8000..=0xFFFF => {
+                let mut rom_address = address - 0x8000;
+                if self.prg_rom.len() <= 16 * 1024 {
+                    rom_address = rom_address % (16 * 1024);
+                }
+                self.prg_rom[rom_address]
+            }
+            _ => panic!("Unsupported read address {}", address),
+        }
     }
 }
 
@@ -73,5 +85,30 @@ mod tests {
 
         bus.write(0x1803, 4);
         assert_eq!(4, bus.ram[3]);
+    }
+
+    #[test]
+    fn test_that_values_from_internal_ram_are_read_correctly() {
+        let mut bus = Bus::new(0, vec![0; 16 * 1024]);
+        bus.ram[0] = 1;
+        bus.ram[1] = 2;
+        bus.ram[2] = 3;
+        bus.ram[3] = 4;
+        assert_eq!(1, bus.read(0));
+        assert_eq!(2, bus.read(0x0801));
+        assert_eq!(3, bus.read(0x1002));
+        assert_eq!(4, bus.read(0x1803));
+    }
+
+    #[test]
+    fn test_that_values_from_prg_rom_are_read_correctly() {
+        let mut prg_rom = vec![0; 16 * 1024];
+        prg_rom[0] = 1;
+        prg_rom[1] = 2;
+        prg_rom[2] = 3;
+        prg_rom[3] = 4;
+        let bus = Bus::new(0, prg_rom);
+        assert_eq!(1, bus.read(0x8000));
+        assert_eq!(2, bus.read(0xC001));
     }
 }
