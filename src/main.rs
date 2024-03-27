@@ -1,3 +1,4 @@
+mod bus;
 mod ines_parser;
 mod instruction;
 mod memory;
